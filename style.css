@@ -1,0 +1,42 @@
+body {
+  font-family: sans-serif;
+  background: #f5f5f5;
+  margin: 0; padding: 0;
+}
+.container {
+  width: 360px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.connect-panel, .control-panel, .status-panel {
+  margin-bottom: 16px;
+}
+.connect-panel input {
+  width: 230px;
+  padding: 4px;
+}
+.connect-panel button {
+  padding: 4px 12px;
+}
+.control-panel {
+  text-align: center;
+}
+.control-panel button {
+  width: 70px;
+  height: 40px;
+  margin: 4px;
+  font-size: 14px;
+}
+.status-panel pre {
+  height: 100px;
+  overflow-y: auto;
+  background: #f0f0f0;
+  padding: 8px;
+  border-radius: 4px;
+}
+.status-fields div {
+  margin-top: 8px;
+}

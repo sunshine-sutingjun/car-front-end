@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>WiFi 小车控制面板</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- 引入 Paho MQTT JS 库 -->
+  <script src="https://unpkg.com/paho-mqtt@1.1.0/paho-mqtt-min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>WiFi 小车控制面板</h1>
+    <div class="connect-panel">
+      <input id="brokerUrl" type="text" placeholder="Broker URL（如 ws://192.168.1.100:8083/mqtt）" />
+      <button id="btnConnect">连接</button>
+      <span id="connStatus">未连接</span>
+    </div>
+
+    <div class="control-panel">
+      <button id="btnForward">前进</button>
+      <button id="btnLeft">左转</button>
+      <button id="btnRight">右转</button>
+      <button id="btnBackward">后退</button>
+    </div>
+
+    <div class="status-panel">
+      <h2>小车状态</h2>
+      <pre id="logArea"></pre>
+      <div class="status-fields">
+        <div>速度：<span id="speed">—</span></div>
+        <div>电量：<span id="battery">—</span></div>
+        <!-- 按需加更多字段 -->
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
