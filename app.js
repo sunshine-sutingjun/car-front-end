@@ -6,8 +6,12 @@ window.addEventListener("DOMContentLoaded", () => {
   let virtualX = 0; // 虚拟摇杆X轴位置 [-1, 1]
   let virtualY = 0; // 虚拟摇杆Y轴位置 [-1, 1]
   let isDragging = false;
+  // Xbox控制器相关变量
+  let gamepadLoopId = null;
+  let lastGamepadConnected = false;
+  let usingGamepad = false;
 
-  // —— 摇杆可视化更新 ——
+  // —— 摇杆可视化更新 —__
   function updateJoystickVisual(x, y, left, right) {
     const stick = document.getElementById("joystickStick");
     const maxOffset = 58; // 摇杆最大偏移距离
@@ -25,7 +29,7 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("rightValue").innerText = right.toFixed(2);
   }
 
-  // —— 计算和发送控制命令 ——
+  // —— 计算和发送控制命令 —__
   function updateControl() {
     let left = virtualY + virtualX;
     let right = virtualY - virtualX;
@@ -55,11 +59,12 @@ window.addEventListener("DOMContentLoaded", () => {
   // 初始化摇杆显示
   updateControl();
 
-  // —— 键盘控制 ——
+  // —— 键盘控制 —__
   const keyState = {};
 
   window.addEventListener("keydown", (e) => {
     keyState[e.key] = true;
+    usingGamepad = false; // 切换到键盘控制
     updateVirtualJoystick();
   });
 
@@ -90,7 +95,7 @@ window.addEventListener("DOMContentLoaded", () => {
     updateControl();
   }
 
-  // —— 鼠标拖拽控制 ——
+  // —— 鼠标拖拽控制 —__
   const joystickBase = document.querySelector(".joystick-base");
   const joystickStick = document.getElementById("joystickStick");
 
@@ -121,6 +126,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   joystickBase.addEventListener("mousedown", (e) => {
+    usingGamepad = false; // 切换到鼠标控制
     isDragging = true;
     const pos = getJoystickPosition(e.clientX, e.clientY);
     virtualX = pos.x;
@@ -150,6 +156,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // 触摸事件支持（移动端）
   joystickBase.addEventListener("touchstart", (e) => {
+    usingGamepad = false; // 切换到触摸控制
     isDragging = true;
     const touch = e.touches[0];
     const pos = getJoystickPosition(touch.clientX, touch.clientY);
@@ -178,6 +185,96 @@ window.addEventListener("DOMContentLoaded", () => {
       updateControl();
     }
   });
+
+  // —— Xbox手柄控制 —__
+  window.addEventListener("gamepadconnected", (e) => {
+    log(`✅ 游戏手柄已连接: ${e.gamepad.id}`);
+    updateGamepadDisplay(true, e.gamepad.id);
+    
+    if (!gamepadLoopId) {
+      gamepadLoopId = requestAnimationFrame(gamepadLoop);
+    }
+  });
+
+  window.addEventListener("gamepaddisconnected", (e) => {
+    log(`❌ 游戏手柄已断开: ${e.gamepad.id}`);
+    updateGamepadDisplay(false);
+    
+    // 如果之前在使用游戏手柄，重置虚拟摇杆
+    if (usingGamepad) {
+      virtualX = 0;
+      virtualY = 0;
+      updateControl();
+      usingGamepad = false;
+    }
+  });
+
+  // 更新游戏手柄状态显示
+  function updateGamepadDisplay(connected, id = '') {
+    const gamepadStatus = document.getElementById("gamepadStatus");
+    const gamepadId = document.getElementById("gamepadId");
+    
+    if (gamepadStatus) {
+      gamepadStatus.innerText = connected ? "已连接" : "未连接";
+    }
+    
+    if (gamepadId && connected) {
+      gamepadId.innerText = id;
+    }
+  }
+  
+  // 游戏手柄控制循环
+  function gamepadLoop() {
+    // 获取所有手柄
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    let gamepadConnected = false;
+    
+    // 检查是否有手柄连接
+    for (const gamepad of gamepads) {
+      if (gamepad) {
+        gamepadConnected = true;
+        
+        // 左摇杆控制
+        const leftStickX = applyDeadzone(gamepad.axes[0], 0.15);  // 水平轴
+        const leftStickY = applyDeadzone(gamepad.axes[1], 0.15);  // 垂直轴（反向）
+        
+        // 右摇杆控制（可选择使用）
+        // const rightStickX = applyDeadzone(gamepad.axes[2], 0.15);
+        // const rightStickY = applyDeadzone(gamepad.axes[3], 0.15);
+        
+        // 只有当摇杆被移动或者之前就在使用手柄时，才应用手柄控制
+        if (leftStickX !== 0 || leftStickY !== 0 || usingGamepad) {
+          usingGamepad = true;
+          virtualX = leftStickX;
+          virtualY = -leftStickY;  // Y轴需要反向
+          updateControl();
+        }
+        
+        break; // 只使用第一个检测到的手柄
+      }
+    }
+    
+    // 检测手柄连接状态变化
+    if (gamepadConnected !== lastGamepadConnected) {
+      lastGamepadConnected = gamepadConnected;
+      if (!gamepadConnected) {
+        updateGamepadDisplay(false);
+      }
+    }
+    
+    // 继续循环
+    gamepadLoopId = requestAnimationFrame(gamepadLoop);
+  }
+  
+  // 应用死区来避免摇杆漂移
+  function applyDeadzone(value, deadzone) {
+    if (Math.abs(value) < deadzone) {
+      return 0;
+    }
+    
+    // 保持值的符号，调整范围以保持线性响应
+    return (value - (Math.sign(value) * deadzone)) / (1 - deadzone);
+  }
 
   // —— 连接/断开 —— 
   document.getElementById("btnConnect").addEventListener("click", () => {
@@ -242,5 +339,21 @@ window.addEventListener("DOMContentLoaded", () => {
     const area = document.getElementById("logArea");
     area.textContent += txt + "\n";
     area.scrollTop = area.scrollHeight;
+  }
+  
+  // 初始化游戏手柄支持
+  if (navigator.getGamepads) {
+    // 启动游戏手柄检测循环
+    gamepadLoopId = requestAnimationFrame(gamepadLoop);
+    
+    // 添加游戏手柄控制说明
+    const controlsInfo = document.querySelector(".controls-info");
+    if (controlsInfo) {
+      const gamepadInfo = document.createElement("div");
+      gamepadInfo.innerHTML = "🎮 Xbox手柄左摇杆";
+      controlsInfo.appendChild(gamepadInfo);
+    }
+  } else {
+    log("⚠️ 您的浏览器不支持游戏手柄API");
   }
 });

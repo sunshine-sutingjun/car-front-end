@@ -143,3 +143,28 @@ h2 {
 .status-fields div {
   margin-top: 8px;
 }
+
+/* 游戏手柄状态样式 */
+#gamepadStatus {
+  font-weight: bold;
+}
+
+#gamepadStatus:empty::after {
+  content: "未连接";
+  color: #dc3545;
+}
+
+#gamepadStatus:not(:empty) {
+  color: #28a745;
+}
+
+#gamepadId {
+  font-family: monospace;
+  font-size: 12px;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
