@@ -5,7 +5,8 @@
   <title>WiFi 小车控制面板</title>
   <link rel="stylesheet" href="style.css">
   <!-- 引入 Paho MQTT JS 库 -->
-  <script src="https://unpkg.com/paho-mqtt@1.1.0/paho-mqtt-min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
+  <script src="app.js"></script>
 </head>
 <body>
   <div class="container">
@@ -16,11 +17,23 @@
       <span id="connStatus">未连接</span>
     </div>
 
-    <div class="control-panel">
-      <button id="btnForward">前进</button>
-      <button id="btnLeft">左转</button>
-      <button id="btnRight">右转</button>
-      <button id="btnBackward">后退</button>
+    <div class="joystick-panel">
+      <h2>虚拟摇杆</h2>
+      <div class="controls-info">
+        <div>🖱️ 鼠标拖拽摇杆</div>
+        <div>⌨️ 方向键 或 WASD</div>
+      </div>
+      <div class="joystick-container">
+        <div class="joystick-base">
+          <div class="joystick-stick" id="joystickStick"></div>
+        </div>
+        <div class="joystick-values">
+          <div>X轴 (左右): <span id="xValue">0</span></div>
+          <div>Y轴 (前后): <span id="yValue">0</span></div>
+          <div>Left: <span id="leftValue">0</span></div>
+          <div>Right: <span id="rightValue">0</span></div>
+        </div>
+      </div>
     </div>
 
     <div class="status-panel">
@@ -28,12 +41,13 @@
       <pre id="logArea"></pre>
       <div class="status-fields">
         <div>速度：<span id="speed">—</span></div>
-        <div>电量：<span id="battery">—</span></div>
+        <div>状态：<span id="statu">—</span></div>    
+        <div>左轮速度：<span id="leftSpeed">—</span></div>
+        <div>右轮速度：<span id="rightSpeed">—</span></div>
         <!-- 按需加更多字段 -->
       </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
 </body>
 </html>
